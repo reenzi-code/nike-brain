@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import { useMemo } from "react"
 import {
   ReactFlow,
   Background,
@@ -17,37 +17,8 @@ import { UrlNode } from "./nodes/UrlNode"
 import { ThoughtNode } from "./nodes/ThoughtNode"
 
 import { layoutNodes } from "@/lib/graph-layout"
-import type { GraphNode, GraphEdge, RFNode, RFEdge } from "@/types/graph"
-
-/* ------------------------------------------------------------------ */
-/* Store shim — Team 3 owns the real `src/store/useGraph.ts`.          */
-/* This keeps Graph renderable standalone until Team 3 ships.          */
-/* ------------------------------------------------------------------ */
-export interface GraphStoreShape {
-  nodes: GraphNode[]
-  edges: GraphEdge[]
-}
-type UseGraphHook = <T>(selector: (s: GraphStoreShape) => T) => T
-
-const FALLBACK_STORE: GraphStoreShape = {
-  nodes: [
-    { id: "nike", type: "nike", label: "Nike" },
-    { id: "desktop", type: "file", label: "Desktop" },
-    { id: "documents", type: "file", label: "Documents" },
-    { id: "downloads", type: "file", label: "Downloads" },
-  ],
-  edges: [
-    { id: "e-nike-desktop", source: "nike", target: "desktop" },
-    { id: "e-nike-documents", source: "nike", target: "documents" },
-    { id: "e-nike-downloads", source: "nike", target: "downloads" },
-  ],
-}
-
-function useGraphFallback<T>(selector: (s: GraphStoreShape) => T): T {
-  return selector(FALLBACK_STORE)
-}
-
-/* ------------------------------------------------------------------ */
+import { useGraph, type GraphNode, type GraphEdge } from "@/store/useGraph"
+import type { RFNode, RFEdge } from "@/types/graph"
 
 const nodeTypes: NodeTypes = {
   nike: NikeNode,
@@ -61,8 +32,8 @@ function toRFNodes(nodes: GraphNode[]): RFNode[] {
   return nodes.map((n) => ({
     id: n.id,
     type: n.type,
-    position: { x: 0, y: 0 }, // dagre will overwrite
-    data: { label: n.label, ...(n.data ?? {}) },
+    position: n.position ?? { x: 0, y: 0 },
+    data: { ...(n.data ?? {}), label: n.data?.label ?? n.id },
   }))
 }
 
@@ -72,34 +43,14 @@ function toRFEdges(edges: GraphEdge[]): RFEdge[] {
     source: e.source,
     target: e.target,
     type: "smoothstep",
-    animated: false,
+    animated: e.animated ?? false,
     style: { stroke: "#52525b", strokeWidth: 1.5 },
   }))
 }
 
 export function Graph() {
-  // Attempt to bind to the real zustand store (Team 3).
-  // If not present yet, fall back to a local mock.
-  const [useGraph, setUseGraph] = useState<UseGraphHook | null>(null)
-
-  useEffect(() => {
-    let mounted = true
-    import("@/store/useGraph")
-      .then((m) => {
-        const hook = (m as { useGraph?: UseGraphHook }).useGraph
-        if (hook && mounted) setUseGraph(() => hook)
-      })
-      .catch(() => {
-        /* store not ready yet — keep fallback */
-      })
-    return () => {
-      mounted = false
-    }
-  }, [])
-
-  const activeHook: UseGraphHook = useGraph ?? useGraphFallback
-  const rawNodes = activeHook((s) => s.nodes)
-  const rawEdges = activeHook((s) => s.edges)
+  const rawNodes = useGraph((s) => s.nodes)
+  const rawEdges = useGraph((s) => s.edges)
 
   const { nodes, edges } = useMemo(() => {
     const rf = {
