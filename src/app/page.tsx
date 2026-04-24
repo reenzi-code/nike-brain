@@ -1,39 +1,32 @@
 "use client";
 
-import { useEffect, useState, useSyncExternalStore, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 
 const STORAGE_KEY = "nike:anthropic_key";
 
-function subscribe(cb: () => void) {
-  window.addEventListener("storage", cb);
-  return () => window.removeEventListener("storage", cb);
-}
-function getSnapshot(): string | null {
-  try {
-    return window.localStorage.getItem(STORAGE_KEY);
-  } catch {
-    return null;
-  }
-}
-function getServerSnapshot(): string | null {
-  return null;
-}
-
 export default function Home() {
   const router = useRouter();
+  const [mounted, setMounted] = useState(false);
+  const [hasExistingKey, setHasExistingKey] = useState(false);
   const [apiKey, setApiKey] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const storedKey = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
-  const checking = storedKey === null && typeof window === "undefined";
 
+  // Runs only on the client, after hydration — avoids SSR/client mismatch.
   useEffect(() => {
-    if (storedKey && storedKey.trim().length > 0) {
-      router.replace("/app");
+    setMounted(true);
+    try {
+      const existing = window.localStorage.getItem(STORAGE_KEY);
+      if (existing && existing.trim().length > 0) {
+        setHasExistingKey(true);
+        router.replace("/app");
+      }
+    } catch {
+      // localStorage blocked — continue to show the form.
     }
-  }, [storedKey, router]);
+  }, [router]);
 
   function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -54,7 +47,18 @@ export default function Home() {
     }
   }
 
-  if (checking) {
+  function handleUseServerKey() {
+    // Server has ANTHROPIC_API_KEY env var — skip local key, go to /app.
+    // The app page accepts missing local key; API route uses env fallback.
+    try {
+      window.localStorage.setItem(STORAGE_KEY, "__server__");
+    } catch {}
+    router.replace("/app");
+  }
+
+  // Pre-hydration: render the same static shell on server + first client render.
+  // After useEffect runs, we either redirect (if key exists) or show the form.
+  if (!mounted || hasExistingKey) {
     return (
       <main className="flex min-h-screen items-center justify-center bg-[#0a0a0a]">
         <div className="h-3 w-3 rounded-full bg-purple-500 animate-pulse-nike" />
@@ -116,6 +120,20 @@ export default function Home() {
           <Button type="submit" variant="primary" size="lg">
             Entrar
           </Button>
+
+          <div className="relative my-2 flex items-center">
+            <div className="flex-1 border-t border-zinc-800" />
+            <span className="px-3 text-xs text-zinc-600">ou</span>
+            <div className="flex-1 border-t border-zinc-800" />
+          </div>
+
+          <button
+            type="button"
+            onClick={handleUseServerKey}
+            className="text-sm text-zinc-400 transition-colors hover:text-purple-300"
+          >
+            Usar key nativa do servidor →
+          </button>
         </form>
 
         <div className="mt-8 flex flex-col items-center gap-2 text-center">

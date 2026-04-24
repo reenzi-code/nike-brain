@@ -6,9 +6,19 @@ export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
 
 export async function POST(req: NextRequest) {
-  const apiKey = req.headers.get("x-api-key")
+  // Client may send their own key via header, or opt into the server-side
+  // env var by sending the sentinel "__server__" (or nothing).
+  const headerKey = req.headers.get("x-api-key")?.trim() || ""
+  const useServerKey =
+    headerKey === "" || headerKey === "__server__" || !headerKey.startsWith("sk-ant-")
+  const envKey = process.env.ANTHROPIC_API_KEY?.trim() || ""
+  const apiKey = useServerKey ? envKey : headerKey
+
   if (!apiKey) {
-    return new Response("missing api key", { status: 401 })
+    return new Response(
+      "missing api key (no valid x-api-key header and no ANTHROPIC_API_KEY env)",
+      { status: 401 },
+    )
   }
 
   let body: { message?: string; history?: unknown[] }
