@@ -1,36 +1,26 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Nike Brain
 
-## Getting Started
+> Segundo cérebro web com agente Nike (Claude Sonnet 4.6) e graph view.
 
-First, run the development server:
-
+## Rodar local
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+# abrir http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Cole sua Anthropic API key na primeira tela (ela fica só no seu browser).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Deploy
+Deployado automaticamente na Vercel:
+**Link:** [preencher após deploy]
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Stack
+Next.js 15 · React 19 · Tailwind v4 · React Flow · Zustand · Anthropic SDK
 
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Como usar
+- Na landing, cole sua key da Anthropic
+- Entre no app — o graph já vem com nós mockados
+- Converse com o Nike no chat lateral
+- Peça coisas tipo: "busca a homepage do Obsidian", "lembra que meu deadline é..."
+- Cada ação dele vira nó conectado no graph
