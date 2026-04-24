@@ -12,8 +12,10 @@ npm run dev
 Cole sua Anthropic API key na primeira tela (ela fica só no seu browser).
 
 ## Deploy
-Deployado automaticamente na Vercel:
-**Link:** [preencher após deploy]
+Rodando em produção na Vercel:
+**Link:** https://nike-brain-tau.vercel.app
+
+Repo: https://github.com/reenzi-code/nike-brain
 
 ## Stack
 Next.js 15 · React 19 · Tailwind v4 · React Flow · Zustand · Anthropic SDK
